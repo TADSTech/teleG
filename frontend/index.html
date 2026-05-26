@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Monitor - Status Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📡 Telegram Monitor Dashboard</h1>
+            <p class="subtitle">Real-time monitoring for THEABZBRAND channel</p>
+        </header>
+
+        <main>
+            <!-- Status Cards -->
+            <section class="status-section">
+                <div class="card status-card">
+                    <div class="card-header">
+                        <h2>Service Status</h2>
+                        <span class="refresh-btn" title="Refresh status">🔄</span>
+                    </div>
+                    <div class="status-content">
+                        <div class="status-indicator" id="statusIndicator">
+                            <span class="dot loading"></span>
+                            <span>Checking...</span>
+                        </div>
+                        <div class="status-details">
+                            <p><strong>Uptime:</strong> <span id="uptime">--</span></p>
+                            <p><strong>Last Alert:</strong> <span id="lastAlert">Never</span></p>
+                            <p><strong>Messages Monitored:</strong> <span id="messageCount">0</span></p>
+                            <p><strong>Alerts Sent:</strong> <span id="alertCount">0</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card control-card">
+                    <div class="card-header">
+                        <h2>Actions</h2>
+                    </div>
+                    <div class="action-buttons">
+                        <button id="clearCacheBtn" class="btn btn-danger">🗑️ Clear Cache</button>
+                        <button id="restartBtn" class="btn btn-warning">🔄 Restart Service</button>
+                        <button id="logsBtn" class="btn btn-info">📋 View Logs</button>
+                        <button id="settingsBtn" class="btn btn-secondary">⚙️ Settings</button>
+                    </div>
+                    <div id="actionMessage" class="action-message"></div>
+                </div>
+            </section>
+
+            <!-- System Info -->
+            <section class="system-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>System Information</h2>
+                    </div>
+                    <div class="system-info">
+                        <div class="info-row">
+                            <span class="label">Server:</span>
+                            <span class="value" id="serverInfo">Oracle Cloud (129.151.247.139)</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Channel:</span>
+                            <span class="value">THEABZBRAND</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Alert Endpoint:</span>
+                            <span class="value">ntfy.sh/anonyTG_alertz</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Service Port:</span>
+                            <span class="value" id="servicePort">9999</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Filter Mode:</span>
+                            <span class="value badge-success">No Filter (Alert All)</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Recent Alerts -->
+            <section class="alerts-section">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Recent Alerts</h2>
+                        <span class="alert-count" id="alertBadge">0</span>
+                    </div>
+                    <div id="alertsList" class="alerts-list">
+                        <p class="empty-state">No alerts yet</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Configuration -->
+            <section class="config-section" id="configSection" style="display:none;">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Configuration</h2>
+                        <span class="close-btn" onclick="closeSettings()">✕</span>
+                    </div>
+                    <div class="config-form">
+                        <div class="form-group">
+                            <label for="channelInput">Channel to Monitor:</label>
+                            <input type="text" id="channelInput" value="THEABZBRAND" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="ntfyInput">Ntfy Topic:</label>
+                            <input type="text" id="ntfyInput" value="anonyTG_alertz" disabled>
+                        </div>
+                        <div class="form-group">
+                            <label for="alertThreshold">Alert Threshold (messages/min):</label>
+                            <input type="number" id="alertThreshold" value="0" min="0" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="pauseAlerts">
+                                Pause Alerts
+                            </label>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>Last updated: <span id="updateTime">just now</span></p>
+            <p>🔒 Local monitoring dashboard | v1.0</p>
+        </footer>
+    </div>
+
+    <!-- Modal for logs -->
+    <div id="logsModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Service Logs</h2>
+                <span class="close-btn" onclick="closeLogsModal()">✕</span>
+            </div>
+            <div id="logsContent" class="logs-content">
+                <pre id="logsText">Loading...</pre>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLogsModal()">Close</button>
+                <button class="btn btn-primary" onclick="downloadLogs()">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

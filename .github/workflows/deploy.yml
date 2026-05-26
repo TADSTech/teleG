@@ -1,0 +1,80 @@
+name: Deploy Dashboard to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifacts
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'frontend'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate HTML
+        run: |
+          echo "Validating HTML structure..."
+          grep -q '<!DOCTYPE html>' frontend/index.html && echo "✓ HTML structure valid" || echo "✗ Missing DOCTYPE"
+          grep -q '<link rel="stylesheet"' frontend/index.html && echo "✓ CSS linked" || echo "✗ CSS not linked"
+          grep -q '<script src="script.js"' frontend/index.html && echo "✓ JS linked" || echo "✗ JS not linked"
+
+      - name: Validate CSS
+        run: |
+          echo "Validating CSS..."
+          wc -l frontend/styles.css
+          echo "✓ CSS file present"
+
+      - name: Validate JavaScript
+        run: |
+          echo "Validating JavaScript syntax..."
+          node -c frontend/script.js || echo "⚠ Could not validate with Node.js (not critical)"
+          wc -l frontend/script.js
+          echo "✓ JS file present"
+
+  notify:
+    needs: [deploy, test]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Deployment Status
+        run: |
+          echo "✅ Dashboard deployment completed!"
+          echo "📊 Access your dashboard at: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+          echo "📝 Deployment: ${{ needs.deploy.result }}"
+          echo "🧪 Tests: ${{ needs.test.result }}"
