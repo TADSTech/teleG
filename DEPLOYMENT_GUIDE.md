@@ -23,10 +23,16 @@ sudo systemctl start telegram-monitor
 sudo systemctl enable telegram-monitor  # Auto-start on reboot
 ```
 
-### 3️⃣ **Check Logs**
+### 3️⃣ **Check Logs & Authentication**
 ```bash
 sudo journalctl -u telegram-monitor -f
 ```
+
+**First Connection:** When you start the service for the first time, Telegram will send a verification code via SMS or your Telegram app. The monitor will:
+1. Display "⏳ Waiting for code from dashboard" in logs
+2. Show a modal in your dashboard asking for the code
+3. Enter the code in the dashboard and click **Verify**
+4. The service will authenticate and start monitoring
 
 ---
 

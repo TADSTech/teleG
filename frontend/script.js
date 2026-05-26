@@ -30,8 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadState();
     setupEventListeners();
     updateDashboard();
+    checkAuthStatus();  // Check auth on startup
     setInterval(updateDashboard, 5000); // Update every 5 seconds
     setInterval(updateTime, 1000); // Update time every second
+    setInterval(checkAuthStatus, 2000); // Check auth every 2 seconds
 });
 
 // Setup event listeners
@@ -309,6 +311,108 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// Check authentication status
+async function checkAuthStatus() {
+    try {
+        const response = await fetch(`${API_BASE}/auth/status`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        }).catch(() => null);
+
+        if (response && response.ok) {
+            const data = await response.json();
+            
+            if (data.state === 'waiting_for_code') {
+                showAuthModal(data.message || 'Enter your Telegram verification code');
+            } else if (data.state === 'code_received') {
+                closeAuthModal();
+            } else if (data.state === 'code_timeout') {
+                showMessage('⚠️ Code input timed out. Service will retry.', 'warning');
+                closeAuthModal();
+            }
+        }
+    } catch (error) {
+        // Silently fail - service may not be running
+    }
+}
+
+// Show auth modal
+function showAuthModal(message = '') {
+    const modal = document.getElementById('authModal');
+    modal.style.display = 'flex';
+    
+    // Clear previous code
+    document.getElementById('authCode').value = '';
+    
+    // Update message
+    if (message) {
+        document.getElementById('authMessage').textContent = message;
+    }
+    
+    // Focus on input
+    setTimeout(() => {
+        document.getElementById('authCode').focus();
+    }, 100);
+}
+
+// Close auth modal
+function closeAuthModal() {
+    const modal = document.getElementById('authModal');
+    modal.style.display = 'none';
+    document.getElementById('authCode').value = '';
+}
+
+// Submit authentication code
+async function submitAuthCode() {
+    const code = document.getElementById('authCode').value.trim();
+    
+    if (!code) {
+        document.getElementById('authMessage').textContent = 'Please enter a code';
+        return;
+    }
+    
+    try {
+        document.getElementById('authMessage').textContent = 'Submitting...';
+        
+        const response = await fetch(`${API_BASE}/auth/submit-code`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code })
+        });
+        
+        if (response.ok) {
+            document.getElementById('authMessage').textContent = '✓ Code submitted! Authenticating...';
+            setTimeout(() => {
+                closeAuthModal();
+                showMessage('✓ Authenticated successfully!', 'success');
+            }, 1500);
+        } else {
+            const error = await response.json();
+            document.getElementById('authMessage').textContent = error.message || 'Failed to submit code';
+        }
+    } catch (error) {
+        document.getElementById('authMessage').textContent = 'Error: ' + error.message;
+    }
+}
+
+// Cancel authentication
+function cancelAuth() {
+    closeAuthModal();
+    showMessage('⚠️ Authentication cancelled', 'warning');
+}
+
+// Allow Enter key to submit code
+document.addEventListener('DOMContentLoaded', () => {
+    const authCodeInput = document.getElementById('authCode');
+    if (authCodeInput) {
+        authCodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitAuthCode();
+            }
+        });
+    }
+});
 
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {

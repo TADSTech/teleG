@@ -20,6 +20,8 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             self.health_check()
         elif self.path == '/logs':
             self.get_logs()
+        elif self.path == '/auth/status':
+            self.get_auth_status()
         else:
             self.send_error(404, 'Not found')
     
@@ -31,6 +33,8 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             self.restart_service()
         elif self.path == '/settings':
             self.save_settings()
+        elif self.path == '/auth/submit-code':
+            self.submit_auth_code()
         else:
             self.send_error(404, 'Not found')
     
@@ -121,6 +125,43 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             self.send_json({'status': 'success', 'message': 'Settings saved'}, 200)
         except Exception as e:
             logger.error(f"Settings error: {e}")
+            self.send_json({'status': 'error', 'message': str(e)}, 500)
+    
+    def get_auth_status(self):
+        """Check if authentication code is needed"""
+        try:
+            auth_state_file = Path('.auth_state.json')
+            if auth_state_file.exists():
+                with open(auth_state_file) as f:
+                    auth_state = json.load(f)
+                self.send_json(auth_state, 200)
+            else:
+                self.send_json({'state': 'ready', 'message': 'Connected'}, 200)
+        except Exception as e:
+            logger.error(f"Auth status error: {e}")
+            self.send_json({'state': 'error', 'message': str(e)}, 500)
+    
+    def submit_auth_code(self):
+        """Submit authentication code from dashboard"""
+        try:
+            content_length = int(self.headers.get('Content-Length', 0))
+            body = self.rfile.read(content_length)
+            data = json.loads(body)
+            code = data.get('code', '').strip()
+            
+            if not code:
+                self.send_json({'status': 'error', 'message': 'Code cannot be empty'}, 400)
+                return
+            
+            # Write code to file for monitor to read
+            auth_code_file = Path('.auth_code.txt')
+            with open(auth_code_file, 'w') as f:
+                f.write(code)
+            
+            logger.info(f"✓ Auth code submitted from dashboard")
+            self.send_json({'status': 'success', 'message': 'Code submitted'}, 200)
+        except Exception as e:
+            logger.error(f"Submit code error: {e}")
             self.send_json({'status': 'error', 'message': str(e)}, 500)
     
     def send_json(self, data, status_code):

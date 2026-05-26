@@ -14,6 +14,7 @@ from telethon.errors import SessionPasswordNeededError
 import logging
 from typing import Callable
 import dotenv
+import time
 
 dotenv.load_dotenv()
 
@@ -34,6 +35,7 @@ NTFY_URL = f'https://ntfy.sh/{NTFY_TOPIC}'
 # Persistence
 MESSAGE_LOG_FILE = 'processed_messages.json'
 MAX_SAVED_MESSAGES = 1000  # Keep last N messages to prevent duplicates
+AUTH_STATE_FILE = '.auth_state.json'
 
 
 class MessageFilter:
@@ -198,10 +200,63 @@ class TelegramMonitor:
         except Exception as e:
             logger.error(f"✗ Error sending alert: {e}")
     
+    def _write_auth_state(self, state: str, message: str = ""):
+        """Write authentication state to file for dashboard visibility"""
+        auth_state = {
+            'state': state,
+            'message': message,
+            'timestamp': datetime.now().isoformat()
+        }
+        try:
+            with open(AUTH_STATE_FILE, 'w') as f:
+                json.dump(auth_state, f)
+        except Exception as e:
+            logger.error(f"✗ Could not write auth state: {e}")
+    
+    def _read_auth_code(self, timeout: int = 300) -> str | None:
+        """Read authentication code submitted from dashboard (waits up to timeout seconds)"""
+        auth_code_file = '.auth_code.txt'
+        start_time = time.time()
+        
+        self._write_auth_state('waiting_for_code', 'Check your dashboard for code input')
+        logger.info("⏳ Waiting for code from dashboard (check your browser)...")
+        
+        while time.time() - start_time < timeout:
+            if os.path.exists(auth_code_file):
+                try:
+                    with open(auth_code_file, 'r') as f:
+                        code = f.read().strip()
+                    
+                    # Clean up
+                    os.remove(auth_code_file)
+                    self._write_auth_state('code_received', '')
+                    logger.info(f"✓ Code received from dashboard")
+                    return code
+                except Exception as e:
+                    logger.error(f"✗ Error reading code: {e}")
+            
+            time.sleep(1)  # Check every second
+        
+        self._write_auth_state('code_timeout', '')
+        logger.error("✗ Code input timeout (5 min)")
+        return None
+    
+    async def _connect_with_code_input(self):
+        """Connect to Telegram with interactive code input support"""
+        async def code_callback():
+            """Callback for when Telegram requires a code"""
+            code = self._read_auth_code()
+            if code is None:
+                raise Exception("Code input timeout")
+            return code
+        
+        await self.client.start(phone=PHONE, code_callback=code_callback)
+    
     async def start(self):
         """Start the monitor"""
         try:
-            await self.client.start(phone=PHONE)
+            # Attempt to start with interactive code input support
+            await self._connect_with_code_input()
             logger.info("✓ Connected to Telegram")
             
             # Get channel
