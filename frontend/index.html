@@ -9,8 +9,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>📡 Telegram Monitor Dashboard</h1>
-            <p class="subtitle">Real-time monitoring for THEABZBRAND channel</p>
+            <h1>📡 Telegram Monitor</h1>
+            <p class="subtitle">Real-time THEABZBRAND alerts</p>
         </header>
 
         <main>
@@ -18,8 +18,8 @@
             <section class="status-section">
                 <div class="card status-card">
                     <div class="card-header">
-                        <h2>Service Status</h2>
-                        <span class="refresh-btn" title="Refresh status">🔄</span>
+                        <h2>🟢 Service Status</h2>
+                        <span class="refresh-btn" title="Refresh">↻</span>
                     </div>
                     <div class="status-content">
                         <div class="status-indicator" id="statusIndicator">
@@ -37,13 +37,13 @@
 
                 <div class="card control-card">
                     <div class="card-header">
-                        <h2>Actions</h2>
+                        <h2>⚡ Quick Actions</h2>
                     </div>
                     <div class="action-buttons">
-                        <button id="clearCacheBtn" class="btn btn-danger">🗑️ Clear Cache</button>
-                        <button id="restartBtn" class="btn btn-warning">🔄 Restart Service</button>
-                        <button id="logsBtn" class="btn btn-info">📋 View Logs</button>
-                        <button id="settingsBtn" class="btn btn-secondary">⚙️ Settings</button>
+                        <button id="clearCacheBtn" class="btn btn-danger">Clear Cache</button>
+                        <button id="restartBtn" class="btn btn-warning">Restart</button>
+                        <button id="logsBtn" class="btn btn-info">View Logs</button>
+                        <button id="settingsBtn" class="btn btn-secondary">Settings</button>
                     </div>
                     <div id="actionMessage" class="action-message"></div>
                 </div>
@@ -53,7 +53,7 @@
             <section class="system-section">
                 <div class="card">
                     <div class="card-header">
-                        <h2>System Information</h2>
+                        <h2>ℹ️ System Info</h2>
                     </div>
                     <div class="system-info">
                         <div class="info-row">
@@ -84,7 +84,7 @@
             <section class="alerts-section">
                 <div class="card">
                     <div class="card-header">
-                        <h2>Recent Alerts</h2>
+                        <h2>🔔 Recent Alerts</h2>
                         <span class="alert-count" id="alertBadge">0</span>
                     </div>
                     <div id="alertsList" class="alerts-list">
@@ -97,7 +97,9 @@
             <section class="config-section" id="configSection" style="display:none;">
                 <div class="card">
                     <div class="card-header">
-                        <h2>Configuration</h2>
+                        <h2>⚙️ Configuration</h2>
+                        <span class="close-btn" onclick="closeSettings()">×</span>
+                    </div>
                         <span class="close-btn" onclick="closeSettings()">✕</span>
                     </div>
                     <div class="config-form">
@@ -133,8 +135,8 @@
 
     <!-- Modal for logs -->
     <div id="logsModal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="📋 Service Logs</h2>
+                <span class="close-btn" onclick="closeLogsModal()">×
                 <h2>Service Logs</h2>
                 <span class="close-btn" onclick="closeLogsModal()">✕</span>
             </div>
@@ -150,7 +152,7 @@
 
     <!-- Modal for Telegram authentication code -->
     <div id="authModal" class="modal" style="display:none;">
-        <div class="modal-content modal-auth">
+        <div class="modal-content modal-auth
             <div class="modal-header">
                 <h2>🔐 Telegram Verification Required</h2>
             </div>

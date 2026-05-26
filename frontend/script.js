@@ -1,5 +1,5 @@
 // Configuration
-const API_BASE = 'http://localhost:9999';
+const API_BASE = 'http://129.151.247.139:9999';
 const STORAGE_KEY = 'teleG_dashboard';
 
 // State
