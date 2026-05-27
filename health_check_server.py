@@ -195,7 +195,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
         pass
 
 
-def start_health_check_server(host='localhost', port=9999):
+def start_health_check_server(host='0.0.0.0', port=9999):
     """Start health check HTTP server"""
     server = HTTPServer((host, port), HealthCheckHandler)
     logger.info(f"Health check server started on {host}:{port}")
