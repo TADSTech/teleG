@@ -4,12 +4,19 @@ Provides REST endpoints for dashboard monitoring
 """
 
 import json
+import socket
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from pathlib import Path
 from datetime import datetime
 import logging
 
 logger = logging.getLogger(__name__)
+
+class ReuseAddrHTTPServer(HTTPServer):
+    """HTTPServer that allows address reuse"""
+    def server_bind(self):
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        super().server_bind()
 
 class HealthCheckHandler(BaseHTTPRequestHandler):
     """HTTP handler for health check endpoints"""
@@ -197,7 +204,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
 
 def start_health_check_server(host='0.0.0.0', port=9999):
     """Start health check HTTP server"""
-    server = HTTPServer((host, port), HealthCheckHandler)
+    server = ReuseAddrHTTPServer((host, port), HealthCheckHandler)
     logger.info(f"Health check server started on {host}:{port}")
     try:
         server.serve_forever()
