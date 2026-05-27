@@ -202,8 +202,12 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
         pass
 
 
-def start_health_check_server(host='0.0.0.0', port=9999):
-    """Start health check HTTP server"""
+def start_health_check_server(host='10.0.0.76', port=9999):
+    """Start health check HTTP server
+    
+    For Oracle Cloud VPS: bind to private IP (10.0.0.76) instead of 0.0.0.0
+    to ensure NAT traffic from public IP (129.151.247.139) is properly routed
+    """
     server = ReuseAddrHTTPServer((host, port), HealthCheckHandler)
     logger.info(f"Health check server started on {host}:{port}")
     try:
